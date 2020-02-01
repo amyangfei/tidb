@@ -784,7 +784,7 @@ func (s *testRegionCacheSuite) TestScanRegions(c *C) {
 		s.cluster.Split(regions[i], regions[i+1], []byte{'a' + byte(i)}, peers[i+1], peers[i+1][0])
 	}
 
-	scannedRegions, err := s.cache.scanRegions(s.bo, []byte(""), 100)
+	scannedRegions, err := s.cache.scanRegions(s.bo, []byte(""), nil, 100)
 	c.Assert(err, IsNil)
 	c.Assert(len(scannedRegions), Equals, 5)
 	for i := 0; i < 5; i++ {
@@ -795,7 +795,7 @@ func (s *testRegionCacheSuite) TestScanRegions(c *C) {
 		c.Assert(p.Id, Equals, peers[i][0])
 	}
 
-	scannedRegions, err = s.cache.scanRegions(s.bo, []byte("a"), 3)
+	scannedRegions, err = s.cache.scanRegions(s.bo, []byte("a"), nil, 3)
 	c.Assert(err, IsNil)
 	c.Assert(len(scannedRegions), Equals, 3)
 	for i := 1; i < 4; i++ {
@@ -806,7 +806,7 @@ func (s *testRegionCacheSuite) TestScanRegions(c *C) {
 		c.Assert(p.Id, Equals, peers[i][0])
 	}
 
-	scannedRegions, err = s.cache.scanRegions(s.bo, []byte("a1"), 1)
+	scannedRegions, err = s.cache.scanRegions(s.bo, []byte("a1"), nil, 1)
 	c.Assert(err, IsNil)
 	c.Assert(len(scannedRegions), Equals, 1)
 
@@ -818,7 +818,7 @@ func (s *testRegionCacheSuite) TestScanRegions(c *C) {
 	// Test region with no leader
 	s.cluster.GiveUpLeader(regions[1])
 	s.cluster.GiveUpLeader(regions[3])
-	scannedRegions, err = s.cache.scanRegions(s.bo, []byte(""), 5)
+	scannedRegions, err = s.cache.scanRegions(s.bo, []byte(""), nil, 5)
 	c.Assert(err, IsNil)
 	for i := 0; i < 3; i++ {
 		r := scannedRegions[i]
