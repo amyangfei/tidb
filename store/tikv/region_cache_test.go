@@ -880,25 +880,27 @@ func (s *testRegionCacheSuite) TestBatchLoadRegions(c *C) {
 		s.cluster.Split(regions[i], regions[i+1], []byte{'a' + byte(i)}, peers[i+1], peers[i+1][0])
 	}
 
-	key, err := s.cache.BatchLoadRegionsFromKey(s.bo, []byte(""), 1)
-	c.Assert(err, IsNil)
-	c.Assert(key, DeepEquals, []byte("a"))
+	testCases := []struct {
+		startKey  []byte
+		limit     int
+		expectKey []byte
+	}{
+		{[]byte(""), 1, []byte("a")},
+		{[]byte("a"), 2, []byte("c")},
+		{[]byte("a1"), 2, []byte("c")},
+		{[]byte("c"), 2, nil},
+		{[]byte("d"), 2, nil},
+	}
 
-	key, err = s.cache.BatchLoadRegionsFromKey(s.bo, []byte("a"), 2)
-	c.Assert(err, IsNil)
-	c.Assert(key, DeepEquals, []byte("c"))
-
-	key, err = s.cache.BatchLoadRegionsFromKey(s.bo, []byte("a1"), 2)
-	c.Assert(err, IsNil)
-	c.Assert(key, DeepEquals, []byte("c"))
-
-	key, err = s.cache.BatchLoadRegionsFromKey(s.bo, []byte("c"), 2)
-	c.Assert(err, IsNil)
-	c.Assert(len(key), Equals, 0)
-
-	key, err = s.cache.BatchLoadRegionsFromKey(s.bo, []byte("d"), 2)
-	c.Assert(err, IsNil)
-	c.Assert(len(key), Equals, 0)
+	for _, tc := range testCases {
+		key, err := s.cache.BatchLoadRegionsFromKey(s.bo, tc.startKey, tc.limit)
+		c.Assert(err, IsNil)
+		if tc.expectKey != nil {
+			c.Assert(key, DeepEquals, tc.expectKey)
+		} else {
+			c.Assert(key, HasLen, 0)
+		}
+	}
 
 	s.checkCache(c, len(regions))
 }
